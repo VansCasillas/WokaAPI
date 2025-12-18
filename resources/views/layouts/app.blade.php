@@ -130,64 +130,311 @@
             color: #dc3545 !important;
             border-color: #dc3545 !important;
         }
+
+        .navbar .form-check-label {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            line-height: 1;
+        }
+
+        .navbar .material-symbols-rounded {
+            font-size: 18px;
+            line-height: 1;
+            vertical-align: middle;
+        }
+
+        .navbar .form-check-input {
+            margin-top: 0;
+        }
+
+        /* wrapper logo */
+        .navbar-logo-wrapper {
+            display: flex;
+            align-items: center;
+        }
+
+        /* ukuran logo */
+        .navbar-logo {
+            height: 32px;
+            width: auto;
+            object-fit: contain;
+        }
+
+        /* default (light mode) */
+        .logo-dark {
+            display: none;
+        }
+
+        /* saat dark mode */
+        body.dark-mode .logo-light {
+            display: none;
+        }
+
+        body.dark-mode .logo-dark {
+            display: block;
+        }
+
+        .navbar-logo {
+            transition: opacity 0.2s ease;
+        }
+
+        .sidebar-logo img {
+            height: 90px;
+            width: auto;
+            object-fit: contain;
+        }
+
+        .app-wrapper {
+            display: flex;
+            min-height: 100vh;
+            padding-left: 100px;
+            /* ruang untuk sidebar */
+        }
+
+        .sidenav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100px !important;
+            min-width: 100px !important;
+            max-width: 100px !important;
+            height: 100vh;
+            z-index: 1030;
+        }
+
+        .sidenav .nav-link {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 12px 8px;
+        }
+
+        .sidenav .nav-link-text {
+            font-size: 11px;
+            margin-top: 4px;
+        }
+
+        .history-panel {
+            width: 0;
+            flex-shrink: 0;
+            overflow: hidden;
+            background: #fff;
+            border-right: 1px solid #ddd;
+            transition: width .25s ease;
+        }
+
+        .history-panel.show {
+            width: 360px;
+        }
+
+        body.dark-mode .history-panel {
+            background: #1e1e1e;
+            border-color: #333;
+        }
+
+        /* .history-panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 16px;
+            border-bottom: 1px solid #ddd;
+        } */
+
+        body.dark-mode .history-panel-header {
+            border-color: #333;
+        }
+
+        .history-panel-body {
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .history-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        .history-item:hover {
+            background: rgba(0, 0, 0, 0.04);
+        }
+
+        body.dark-mode .history-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        /* TEXT AREA */
+        .history-text {
+            flex: 1;
+            min-width: 0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .history-delete {
+            display: none;
+            flex-shrink: 0;
+        }
+
+        /* hover → tombol MASUK layout */
+        .history-item:hover .history-delete {
+            display: inline-flex;
+        }
+
+        .history-main {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            flex: 1;
+            min-width: 0;
+        }
+
+        .history-main strong {
+            display: block;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .history-url {
+            line-height: 1.4;
+            display: flex;
+            align-items: center;
+        }
+
+        .main-content {
+            flex: 1;
+            min-width: 0;
+            padding: 24px;
+        }
     </style>
 
 </head>
 
-<body class="g-sidenav-show  bg-gray-100">
-    <main class="main-content position-relative max-height-vh-100 h-100 border-radius-lg ">
-        <!-- Navbar -->
-        <nav class="navbar navbar-main navbar-expand-lg px-0 mx-3 shadow-none border-radius-xl" id="navbarBlur" data-scroll="true">
-            <div class="container-fluid py-1 px-3">
-                <nav aria-label="breadcrumb">
-                    <ol class="breadcrumb bg-transparent mb-0 pb-0 pt-1 px-0 me-sm-6 me-5">
-                        <li class="breadcrumb-item text-sm"><a class="opacity-5 text-dark" href="javascript:;">Pages</a></li>
-                        <li class="breadcrumb-item text-sm text-dark active" aria-current="page">Dashboard</li>
-                    </ol>
-                </nav>
-                <div class="collapse navbar-collapse mt-sm-0 mt-2 me-md-0 me-sm-4" id="navbar">
-                    <ul class="navbar-nav ms-md-auto pe-md-3 d-flex align-items-center gap-2 justify-content-end">
-                        <li class="nav-item px-3 d-flex align-items-center">
-                            <div class="form-check form-switch m-0 p-0">
-                                <input class="form-check-input" type="checkbox" id="darkSwitch">
-                            </div>
-                        </li>
-                        <li class="nav-item d-flex align-items-center">
-                            <a href="../pages/sign-in.html" class="nav-link text-body font-weight-bold px-0">
-                                <i class="material-symbols-rounded">account_circle</i>
-                            </a>
-                        </li>
-                    </ul>
+<body class="g-sidenav-show bg-gray-100">
+    <!-- SIDEBAR -->
+    <aside class="sidenav collapsed navbar navbar-vertical navbar-expand-xs border-radius-lg fixed-start bg-white my-2 ms-2"
+        id="sidenav-main">
+        <div class="sidenav-header">
+            <i class="fas fa-times p-3 cursor-pointer text-dark opacity-5 position-absolute end-0 top-0 d-none d-xl-none" aria-hidden="true" id="iconSidenav"></i>
+            <a class="navbar-brand px-4 py-4 m-0 d-flex justify-content-center" href="{{ route('wokaapi') }}">
+                <div class="sidebar-logo navbar-logo-wrapper">
+                    <img src="{{ asset('storage/gambar/Tanpa_judul__Logo_-removebg-preview.png') }}" class="navbar-logo logo-light" alt="logo">
+                    <img src="{{ asset('storage/gambar/Gemini_Generated_Image_wvgywswvgywswvgy-removebg-preview.png') }}" alt="Logo Dark" class="navbar-logo logo-dark">
                 </div>
+            </a>
+        </div>
+        <hr class="horizontal dark mt-0 mb-2">
+        <div class="collapse navbar-collapse w-auto " id="sidenav-collapse-main">
+            <ul class="navbar-nav">
+                <!-- Dashboard Admin(only)-->
+                <li class="nav-item">
+                    <a class="nav-link text-dark {{ request()->routeIs('wokaapi') ? 'active bg-gradient-dark text-white' : '' }}"
+                        href="{{ route('wokaapi') }}">
+                        <i class="material-symbols-rounded opacity-5">dashboard</i>
+                        <span class="nav-link-text">Dashboard</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link text-dark {{ request()->routeIs('profile.index') ? 'active bg-gradient-dark text-white' : '' }}"
+                        href="{{ route('profile.index') }}">
+                        <i class="material-symbols-rounded opacity-5">account_circle</i>
+                        <span class="nav-link-text">profile</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a id="historyToggle" class="nav-link text-dark" href="#">
+                        <i class="material-symbols-rounded">history</i>
+                        <span class="nav-link-text">History</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+        <!-- Logout -->
+        <div class="sidenav-footer position-absolute w-100 bottom-0">
+            <div class="mx-3">
+                <form action="{{ route('logout') }}" method="POST">
+                    @csrf
+                    <button type="submit" class="btn bg-gradient-danger w-100 mt-4 text-white">
+                        <i class="material-symbols-rounded">logout</i>
+                        <span class="nav-link-text">Logout</span>
+                    </button>
+                </form>
             </div>
-        </nav>
-        <!-- End Navbar -->
-        <div class="container-fluid py-2">
-            <div class="row">
-                <div class="ms-3">
-                    <h3 class="mb-0 h4 font-weight-bolder">Dashboard</h3>
+        </div>
+    </aside>
+    <!-- END SIDEBAR -->
+
+    <div class="app-wrapper">
+        <!-- HISTORY PANEL -->
+        <div id="historyPanel" class="history-panel border-radius-lg bg-white my-2 ms-2">
+            <div class="history-panel-header d-flex justify-content-between p-3 border-bottom">
+                <h6 class="mb-0">History</h6>
+                <button id="clearHistoryBtn" class="btn btn-sm btn-outline-danger">
+                    Clear
+                </button>
+            </div>
+
+            <div id="historyList" class="history-panel-body p-2">
+                <p class="text-muted small text-center mt-3">
+                    Belum ada history.
+                </p>
+            </div>
+        </div>
+        <main class="main-content position-relative max-height-vh-100 h-100 border-radius-lg ">
+            <!-- Navbar -->
+            <nav class="navbar navbar-main navbar-expand-lg px-0 mx-3 shadow-none border-radius-xl" id="navbarBlur" data-scroll="true">
+                <div class="container-fluid py-1 px-3">
+                    <div class="collapse navbar-collapse mt-sm-0 mt-2 me-md-0 me-sm-4" id="navbar">
+                        <ul class="navbar-nav ms-md-auto pe-md-3 d-flex align-items-center gap-4 justify-content-end">
+                            <li class="nav-item d-flex align-items-center">
+                                <div class="form-check form-switch m-0 d-flex align-items-center gap-2">
+                                    <input class="form-check-input m-0" type="checkbox" id="darkSwitch">
+                                    <label class="form-check-label m-0" for="darkSwitch">
+                                        <span class="material-symbols-rounded">light_mode</span>
+                                        <span>/</span>
+                                        <span class="material-symbols-rounded">dark_mode</span>
+                                    </label>
+                                </div>
+                            </li>
+                        </ul>
+
+                    </div>
                 </div>
-            </div>
+            </nav>
+            <!-- End Navbar -->
+            <div class="container-fluid py-2">
+                <div class="row">
+                    <div class="ms-3">
+                        <h3 class="mb-0 h4 font-weight-bolder">Dashboard</h3>
+                    </div>
+                </div>
 
-            @yield('content')
+                @yield('content')
 
 
-            <footer class="footer py-4">
-                <div class="container-fluid">
-                    <div class="row align-items-center justify-content-lg-between">
-                        <div class=" mb-lg-0 mb-4">
-                            <div class="copyright text-center text-sm">
-                                © <script>
-                                    document.write(new Date().getFullYear())
-                                </script>,
-                                made by <span class="font-weight-bold">Woka Project Mandiri</span> Team
+                <footer class="footer py-4">
+                    <div class="container-fluid">
+                        <div class="row align-items-center justify-content-lg-between">
+                            <div class=" mb-lg-0 mb-4">
+                                <div class="copyright text-center text-sm">
+                                    © <script>
+                                        document.write(new Date().getFullYear())
+                                    </script>,
+                                    made by <span class="font-weight-bold">Woka Project Mandiri</span> Team
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
-            </footer>
-        </div>
-    </main>
+                </footer>
+            </div>
+        </main>
+    </div>
+
     <!--   Core JS Files   -->
     <script>
         document.addEventListener("DOMContentLoaded", function() {
@@ -209,6 +456,15 @@
                     localStorage.setItem("darkMode", "off");
                 }
             });
+        });
+
+        document.getElementById('historyToggle').addEventListener('click', function(e) {
+            e.preventDefault();
+            document.getElementById('historyPanel').classList.toggle('show');
+        });
+
+        document.getElementById('closeHistory').addEventListener('click', function() {
+            document.getElementById('historyPanel').classList.remove('show');
         });
     </script>
 

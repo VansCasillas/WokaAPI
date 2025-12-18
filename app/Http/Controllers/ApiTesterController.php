@@ -21,46 +21,61 @@ class ApiTesterController extends Controller
     {
         $client = new Client();
 
-        $method = strtoupper($request->input('method'));
-        $url    = $request->input('url');
-        $headersText = $request->input('headers_data');
-        $bodyData    = $request->input('body');
-
-        // Parse headers
-        $headers = [];
-        if (!empty($headersText)) {
-            $lines = preg_split("/\r\n|\n|\r/", $headersText);
-            foreach ($lines as $line) {
-                if (strpos($line, ':') !== false) {
-                    [$key, $value] = explode(':', $line, 2);
-                    $headers[trim($key)] = trim($value);
-                }
-            }
-        }
+        $method  = strtoupper($request->input('method'));
+        $url     = $request->input('url');
+        $headers = $request->input('headers_data', []);
+        $body    = $request->input('body');
 
         try {
             $options = [];
 
-            if (!empty($headers)) {
+            /* ================= HEADERS ================= */
+            if (!empty($headers) && is_array($headers)) {
                 $options['headers'] = $headers;
             }
 
-            if (!empty($bodyData)) {
-                $options['body'] = $bodyData;
+            /* ================= BODY HANDLING ================= */
+            if (!empty($body)) {
+
+                $contentType = $headers['Content-Type'] ?? '';
+
+                // JSON
+                if (str_contains($contentType, 'application/json')) {
+                    $options['json'] = json_decode($body, true);
+
+                    // Form URL Encoded
+                } elseif (str_contains($contentType, 'application/x-www-form-urlencoded')) {
+                    parse_str($body, $form);
+                    $options['form_params'] = $form;
+
+                    // Multipart
+                } elseif (str_contains($contentType, 'multipart/form-data')) {
+                    $multipart = [];
+                    parse_str($body, $form);
+                    foreach ($form as $key => $value) {
+                        $multipart[] = [
+                            'name' => $key,
+                            'contents' => $value
+                        ];
+                    }
+                    $options['multipart'] = $multipart;
+
+                    // Raw
+                } else {
+                    $options['body'] = $body;
+                }
             }
 
-            // Send HTTP request
             $response = $client->request($method, $url, $options);
 
             $status = $response->getStatusCode();
             $responseBody = $response->getBody()->getContents();
 
-            // save to database
             ApiHistory::create([
                 'method' => $method,
                 'url' => $url,
                 'headers' => $headers,
-                'body' => $bodyData,
+                'body' => $body,
                 'response_status' => $status,
                 'response_body' => $responseBody,
             ]);
@@ -69,13 +84,13 @@ class ApiTesterController extends Controller
                 'status' => $status,
                 'body' => $responseBody,
             ]);
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
 
             ApiHistory::create([
                 'method' => $method,
                 'url' => $url,
                 'headers' => $headers,
-                'body' => $bodyData,
+                'body' => $body,
                 'response_status' => 0,
                 'response_body' => $e->getMessage(),
             ]);
@@ -83,9 +98,10 @@ class ApiTesterController extends Controller
             return response()->json([
                 'status' => 0,
                 'body' => $e->getMessage(),
-            ]);
+            ], 500);
         }
     }
+
 
     /**
      * Show the form for creating a new resource.

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\ApiHistory;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 
 class ApiHistoryController extends Controller
 {
@@ -12,8 +13,20 @@ class ApiHistoryController extends Controller
      */
     public function index()
     {
-        return ApiHistory::orderBy('created_at', 'desc')->get();
+        return ApiHistory::orderBy('created_at', 'desc')
+            ->get()
+            ->map(function ($item) {
+                return [
+                    'id' => $item->id,
+                    'method' => $item->method,
+                    'url' => $item->url,
+                    'url_short' => Str::limit($item->url, 35),
+                    'response_status' => $item->response_status,
+                    'created_at' => $item->created_at,
+                ];
+            });
     }
+
 
     /**
      * Show the form for creating a new resource.
@@ -71,5 +84,4 @@ class ApiHistoryController extends Controller
 
         return ['message' => 'all history cleared'];
     }
-
 }

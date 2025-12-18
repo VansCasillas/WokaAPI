@@ -5,7 +5,7 @@
 <div class="container-fluid py-4">
     <div class="row h-100">
         <!-- LEFT PANEL -->
-        <div class="col-lg-6 mb-4">
+        <div class="mb-4">
             <div class="card shadow-sm h-100" id="leftPanel">
                 <div class="card-header pb-0">
                     <h6 class="mb-0">Request Builder</h6>
@@ -32,22 +32,38 @@
                             </div>
                         </div>
 
-                        <!-- HEADERS -->
+                        <!-- HEADERS (ADVANCED) -->
                         <div class="mb-3">
                             <div class="d-flex justify-content-between">
                                 <label class="form-label mb-1">Headers</label>
-                                <small class="text-muted">Key: Value (satu per baris)</small>
+                                <small class="text-muted">Content-Type & Authorization</small>
                             </div>
 
-                            <textarea id="headers_data" class="form-control styled-input"
-                                rows="4" placeholder="Content-Type: application/json&#10;Authorization: Bearer token"></textarea>
+                            <select id="contentType" class="form-control styled-input mb-2">
+                                <option value="">-- Content-Type --</option>
+                                <option value="application/json">JSON (application/json)</option>
+                                <option value="application/x-www-form-urlencoded">Form URL Encoded</option>
+                                <option value="multipart/form-data">Multipart Form Data</option>
+                            </select>
+
+                            <div class="d-flex gap-2">
+                                <select id="authType" class="form-control styled-input">
+                                    <option value="">-- Authorization --</option>
+                                    <option value="bearer">Bearer Token</option>
+                                </select>
+
+                                <input type="text"
+                                    id="authToken"
+                                    class="form-control styled-input"
+                                    placeholder="Bearer token..."
+                                    disabled>
+                            </div>
                         </div>
 
                         <!-- BODY -->
                         <div class="mb-3">
                             <div class="d-flex justify-content-between">
                                 <label class="form-label mb-1">Body (JSON / raw)</label>
-
                                 <button id="formatJsonBtn" type="button"
                                     class="btn btn-link text-primary p-0 small">
                                     Pretty JSON
@@ -55,7 +71,8 @@
                             </div>
 
                             <textarea id="body" class="form-control styled-input"
-                                rows="7" placeholder='{"title": "foo", "body": "bar", "userId": 1}'></textarea>
+                                rows="7"
+                                placeholder='{"title": "foo", "body": "bar", "userId": 1}'></textarea>
                         </div>
 
                         <div class="d-flex gap-2">
@@ -63,7 +80,8 @@
                                 Send Request
                             </button>
 
-                            <button id="clearFormBtn" type="button" class="btn btn-outline-secondary py-2">
+                            <button id="clearFormBtn" type="button"
+                                class="btn btn-outline-secondary py-2">
                                 Clear Form
                             </button>
                         </div>
@@ -74,14 +92,13 @@
         </div>
 
         <!-- RIGHT PANEL -->
-        <div class="col-lg-6 mb-4">
+        <div>
             <div class="card shadow-sm h-100" id="rightPanel">
                 <div class="card-header pb-0">
                     <h6 class="mb-0">Response</h6>
                 </div>
 
                 <div class="card-body d-flex flex-column">
-                    <!-- STATUS -->
                     <div class="row g-3 mb-3">
                         <div class="col-md-6">
                             <div class="border rounded p-3 bg-light">
@@ -98,7 +115,6 @@
                         </div>
                     </div>
 
-                    <!-- RESPONSE BODY -->
                     <label class="form-label">Response Body</label>
                     <pre id="responseBody"
                         class="bg-dark text-success p-3 rounded overflow-auto flex-grow-1"
@@ -106,112 +122,96 @@
                 </div>
             </div>
         </div>
-        <div>
-            <div class="card shadow-sm p-3">
-                <div class="card-body">
-                    <!-- HISTORY -->
-                    <div class="d-flex justify-content-between align-items-center mt-4 mb-2">
-                        <h6 class="mb-0">History</h6>
-
-                        <button id="clearHistoryBtn" class="btn btn-link text-danger small p-0">
-                            Clear All
-                        </button>
-                    </div>
-
-                    <div id="historyList"
-                        class="border rounded p-3 bg-light"
-                        style="height: 180px; overflow-y: auto;">
-                        <p class="text-muted small">Belum ada history.</p>
-                    </div>
-                </div>
-            </div>
-        </div>
     </div>
 </div>
+
 <script>
-    // pretty JSON untuk textarea body
-    document.getElementById('formatJsonBtn').addEventListener('click', () => {
-        const textarea = document.getElementById('body');
-        const text = textarea.value.trim();
-        if (!text) return;
-        try {
-            const obj = JSON.parse(text);
-            textarea.value = JSON.stringify(obj, null, 2);
-        } catch (e) {
-            alert('Body bukan JSON valid.');
-        }
-    });
+/* ================= HEADER BUILDER ================= */
+function buildHeadersData() {
+    const headers = {};
 
-    // clear form
-    document.getElementById('clearFormBtn').addEventListener('click', () => {
-        document.getElementById('method').value = 'GET';
-        document.getElementById('url').value = '';
-        document.getElementById('headers_data').value = '';
-        document.getElementById('body').value = '';
-    });
+    const ct = document.getElementById('contentType').value;
+    if (ct) headers['Content-Type'] = ct;
 
-    // kirim request ke backend /api/send
-    document.getElementById('requestForm').addEventListener('submit', async (e) => {
-        e.preventDefault();
+    const authType = document.getElementById('authType').value;
+    const token = document.getElementById('authToken').value.trim();
+    if (authType === 'bearer' && token) {
+        headers['Authorization'] = `Bearer ${token}`;
+    }
 
-        const method = document.getElementById('method').value;
-        const url = document.getElementById('url').value.trim();
-        const headers_data = document.getElementById('headers_data').value;
-        const body = document.getElementById('body').value;
+    return headers;
+}
 
-        if (!url) {
-            alert('URL tidak boleh kosong.');
-            return;
-        }
+document.getElementById('authType').addEventListener('change', e => {
+    document.getElementById('authToken').disabled = e.target.value !== 'bearer';
+});
 
-        document.getElementById('infoText').textContent = 'Sending...';
-        document.getElementById('statusCode').textContent = '-';
+/* ================= PRETTY JSON ================= */
+document.getElementById('formatJsonBtn').addEventListener('click', () => {
+    const textarea = document.getElementById('body');
+    if (!textarea.value.trim()) return;
+    try {
+        textarea.value = JSON.stringify(JSON.parse(textarea.value), null, 2);
+    } catch {
+        alert('Body bukan JSON valid.');
+    }
+});
 
-        try {
-            const res = await fetch('/api/send', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json'
-                },
-                body: JSON.stringify({
-                    method,
-                    url,
-                    headers_data,
-                    body
-                })
-            });
+/* ================= CLEAR FORM ================= */
+document.getElementById('clearFormBtn').addEventListener('click', () => {
+    document.getElementById('method').value = 'GET';
+    document.getElementById('url').value = '';
+    document.getElementById('body').value = '';
+    document.getElementById('contentType').value = '';
+    document.getElementById('authType').value = '';
+    document.getElementById('authToken').value = '';
+    document.getElementById('authToken').disabled = true;
+});
 
-            const data = await res.json();
+/* ================= SEND REQUEST ================= */
+document.getElementById('requestForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
 
-            // tampilkan status
-            document.getElementById('statusCode').textContent = data.status ?? '-';
-            document.getElementById('infoText').textContent = data.status === 0 ?
-                'Request error' :
-                'Request completed';
+    const method = document.getElementById('method').value;
+    const url = document.getElementById('url').value.trim();
+    const headers_data = buildHeadersData();
+    const body = document.getElementById('body').value;
 
-            // pretty JSON kalau bisa
-            let text = data.body ?? '';
-            try {
-                const parsed = JSON.parse(text);
-                text = JSON.stringify(parsed, null, 2);
-            } catch (e) {
-                // biarkan apa adanya
-            }
-            document.getElementById('responseBody').textContent = text || 'No response body.';
+    if (!url) return alert('URL tidak boleh kosong.');
 
-            // reload history
-            loadHistory();
+    document.getElementById('infoText').textContent = 'Sending...';
+    document.getElementById('statusCode').textContent = '-';
 
-        } catch (err) {
-            document.getElementById('statusCode').textContent = 'ERR';
-            document.getElementById('infoText').textContent = 'Failed';
-            document.getElementById('responseBody').textContent = err.message;
-        }
-    });
+    try {
+        const res = await fetch('/api/send', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({ method, url, headers_data, body })
+        });
 
-    // load history dari /api/history
-    async function loadHistory() {
+        const data = await res.json();
+
+        document.getElementById('statusCode').textContent = data.status ?? '-';
+        document.getElementById('infoText').textContent =
+            data.status === 0 ? 'Request error' : 'Request completed';
+
+        let text = data.body ?? '';
+        try { text = JSON.stringify(JSON.parse(text), null, 2); } catch {}
+        document.getElementById('responseBody').textContent = text || 'No response body.';
+
+        loadHistory();
+    } catch (err) {
+        document.getElementById('statusCode').textContent = 'ERR';
+        document.getElementById('infoText').textContent = 'Failed';
+        document.getElementById('responseBody').textContent = err.message;
+    }
+});
+
+/* ================= HISTORY (LAMA, TETAP) ================= */
+async function loadHistory() {
         try {
             const res = await fetch('/api/history');
             const list = await res.json();
@@ -226,9 +226,8 @@
 
             list.forEach(item => {
                 const row = document.createElement('div');
-                row.className = 'd-flex justify-content-between align-items-center';
+                row.className = 'history-item';
 
-                // METHOD badge
                 const methodBadge = {
                     GET: 'badge bg-info',
                     POST: 'badge bg-primary',
@@ -239,18 +238,27 @@
 
                 const mainBtn = document.createElement('button');
                 mainBtn.type = 'button';
-                mainBtn.className = 'btn btn-link text-start p-0 flex-grow-1';
+                mainBtn.className =
+                    'history-main btn btn-link text-start mt-3';
                 mainBtn.innerHTML = `
-        <span class="${methodBadge[item.method] || 'badge bg-dark'}">${item.method}</span>
-        <strong class="ms-2">${item.url}</strong>
-        <small class="text-muted ms-2">(${item.response_status ?? '-'})</small>`;
+        <span class="${methodBadge[item.method] || 'badge bg-dark'}">
+            ${item.method}
+        </span>
+        <span class="history-url fw-semibold">
+            ${item.url_short}
+        </span>
+    `;
                 mainBtn.onclick = () => loadHistoryItem(item.id);
 
                 const deleteBtn = document.createElement('button');
                 deleteBtn.type = 'button';
-                deleteBtn.className = 'btn btn-sm btn-outline-danger';
-                deleteBtn.textContent = 'Hapus';
-                deleteBtn.onclick = () => deleteHistory(item.id);
+                deleteBtn.className =
+                    'history-delete btn btn-sm btn-outline-danger mt-3';
+                deleteBtn.innerHTML = 'Hapus';
+                deleteBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    deleteHistory(item.id);
+                };
 
                 row.appendChild(mainBtn);
                 row.appendChild(deleteBtn);
@@ -293,53 +301,47 @@
     async function deleteHistory(id) {
         if (!confirm('Hapus history ini?')) return;
 
-        await fetch(`/api/history/${id}`, {
-            method: 'DELETE',
-            headers: {
-                'Accept': 'application/json'
-            }
-        });
+        try {
+            await fetch(`/api/history/${id}`, {
+                method: 'DELETE',
+                headers: {
+                    'Accept': 'application/json'
+                }
+            });
 
-        loadHistory();
+            loadHistory();
+        } catch (e) {
+            console.error(e);
+            alert('Gagal menghapus history');
+        }
     }
 
-    // clear all history
-    document.getElementById('clearHistoryBtn').addEventListener('click', async () => {
-        if (!confirm('Hapus semua history?')) return;
+    /* ================= CLEAR ALL HISTORY ================= */
+    const clearBtn = document.getElementById('clearHistoryBtn');
+    if (clearBtn) {
+        clearBtn.addEventListener('click', async () => {
+            if (!confirm('Hapus semua history?')) return;
 
-        await fetch('/api/history', {
-            method: 'DELETE',
-            headers: {
-                'Accept': 'application/json'
-            }
+            await fetch('/api/history', {
+                method: 'DELETE',
+                headers: {
+                    'Accept': 'application/json'
+                }
+            });
+
+            loadHistory();
         });
-
-        loadHistory();
-    });
-
+    }
     // load history pertama kali
     loadHistory();
 </script>
 
 <style>
-    /* 🔹 Styling input biar kotaknya jelas */
-    .styled-input {
-        border: 1.5px solid #bbb;
-        border-radius: 8px;
-        padding: 10px 12px;
-        transition: border-color 0.3s, box-shadow 0.3s;
-    }
-
-    .styled-input:focus {
-        border-color: #000;
-        box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.1);
-        outline: none;
-    }
-
-    label {
-        margin-bottom: 6px;
-    }
+.styled-input {
+    border: 1.5px solid #bbb;
+    border-radius: 8px;
+    padding: 10px 12px;
+}
 </style>
 
-</body>
 @endsection
