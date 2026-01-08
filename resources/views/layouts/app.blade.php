@@ -311,6 +311,100 @@
             min-width: 0;
             padding: 24px;
         }
+
+        /* ===== PROFILE TAB FIX (DARK MODE) ===== */
+        body.dark-mode .nav-pills {
+            background-color: #1e1e1e;
+        }
+
+        body.dark-mode .nav-pills .nav-link {
+            color: #ccc !important;
+        }
+
+        body.dark-mode .nav-pills .nav-link.active {
+            background-color: #1e1e1e !important;
+            color: #fff !important;
+            border-radius: 8px;
+        }
+
+        /* ===============================
+   NAV UPDATE BUTTON FIX
+================================ */
+.nav-pills {
+    background: transparent;
+}
+
+.nav-pills .nav-link {
+    color: #555;
+    background: transparent;
+    border-radius: 10px;
+    transition: all 0.2s ease;
+}
+
+/* ===============================
+   MODAL DARK MODE FIX
+================================ */
+body.dark-mode .modal-content {
+    background-color: #1e1e1e;
+    color: #eaeaea;
+    border-radius: 16px;
+    border: 1px solid rgba(255,255,255,.08);
+}
+
+body.dark-mode .modal-header,
+body.dark-mode .modal-footer {
+    border-color: rgba(255,255,255,.1);
+}
+
+body.dark-mode .modal-title {
+    color: #fff;
+}
+
+body.dark-mode .btn-close {
+    filter: invert(1);
+}
+
+/* ===============================
+   FORM INPUT DARK
+================================ */
+body.dark-mode .styled-input {
+    background-color: #121212;
+    color: #fff;
+    border-color: rgba(255,255,255,.15);
+}
+
+body.dark-mode .styled-input::placeholder {
+    color: #777;
+}
+
+body.dark-mode .styled-input:focus {
+    border-color: #0d6efd;
+    box-shadow: none;
+}
+
+/* ===============================
+   PROFILE IMAGE BUTTON
+================================ */
+body.dark-mode .edit-btn {
+    background-color: #0d6efd;
+}
+
+body.dark-mode .edit-btn:hover {
+    background-color: #0b5ed7;
+}
+
+/* ===============================
+   MODAL ANIMATION
+================================ */
+.modal.fade .modal-dialog {
+    transform: scale(0.95);
+    transition: transform .2s ease;
+}
+
+.modal.show .modal-dialog {
+    transform: scale(1);
+}
+
     </style>
 
 </head>
@@ -328,21 +422,20 @@
                 </div>
             </a>
         </div>
-        <hr class="horizontal dark mt-0 mb-2">
         <div class="collapse navbar-collapse w-auto " id="sidenav-collapse-main">
             <ul class="navbar-nav">
                 <!-- Dashboard Admin(only)-->
                 <li class="nav-item">
                     <a class="nav-link text-dark {{ request()->routeIs('wokaapi') ? 'active bg-gradient-dark text-white' : '' }}"
                         href="{{ route('wokaapi') }}">
-                        <i class="material-symbols-rounded opacity-5">dashboard</i>
+                        <i class="material-symbols-rounded">dashboard</i>
                         <span class="nav-link-text">Dashboard</span>
                     </a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link text-dark {{ request()->routeIs('profile.index') ? 'active bg-gradient-dark text-white' : '' }}"
                         href="{{ route('profile.index') }}">
-                        <i class="material-symbols-rounded opacity-5">account_circle</i>
+                        <i class="material-symbols-rounded">account_circle</i>
                         <span class="nav-link-text">profile</span>
                     </a>
                 </li>
@@ -371,8 +464,8 @@
 
     <div class="app-wrapper">
         <!-- HISTORY PANEL -->
-        <div id="historyPanel" class="history-panel border-radius-lg bg-white my-2 ms-2">
-            <div class="history-panel-header d-flex justify-content-between p-3 border-bottom">
+        <div id="historyPanel" class="history-panel border-radius-lg my-2 ms-2">
+            <div class="history-panel-header d-flex justify-content-between px-3 mt-3 border-bottom">
                 <h6 class="mb-0">History</h6>
                 <button id="clearHistoryBtn" class="btn btn-sm btn-outline-danger">
                     Clear

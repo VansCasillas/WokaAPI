@@ -118,7 +118,7 @@
                     <label class="form-label">Response Body</label>
                     <pre id="responseBody"
                         class="bg-dark text-success p-3 rounded overflow-auto flex-grow-1"
-                        style="height: 250px;">No response yet.</pre>
+                        style="height: 350px;">No response yet.</pre>
                 </div>
             </div>
         </div>
@@ -126,92 +126,99 @@
 </div>
 
 <script>
-/* ================= HEADER BUILDER ================= */
-function buildHeadersData() {
-    const headers = {};
+    /* ================= HEADER BUILDER ================= */
+    function buildHeadersData() {
+        const headers = {};
 
-    const ct = document.getElementById('contentType').value;
-    if (ct) headers['Content-Type'] = ct;
+        const ct = document.getElementById('contentType').value;
+        if (ct) headers['Content-Type'] = ct;
 
-    const authType = document.getElementById('authType').value;
-    const token = document.getElementById('authToken').value.trim();
-    if (authType === 'bearer' && token) {
-        headers['Authorization'] = `Bearer ${token}`;
+        const authType = document.getElementById('authType').value;
+        const token = document.getElementById('authToken').value.trim();
+        if (authType === 'bearer' && token) {
+            headers['Authorization'] = `Bearer ${token}`;
+        }
+
+        return headers;
     }
 
-    return headers;
-}
+    document.getElementById('authType').addEventListener('change', e => {
+        document.getElementById('authToken').disabled = e.target.value !== 'bearer';
+    });
 
-document.getElementById('authType').addEventListener('change', e => {
-    document.getElementById('authToken').disabled = e.target.value !== 'bearer';
-});
+    /* ================= PRETTY JSON ================= */
+    document.getElementById('formatJsonBtn').addEventListener('click', () => {
+        const textarea = document.getElementById('body');
+        if (!textarea.value.trim()) return;
+        try {
+            textarea.value = JSON.stringify(JSON.parse(textarea.value), null, 2);
+        } catch {
+            alert('Body bukan JSON valid.');
+        }
+    });
 
-/* ================= PRETTY JSON ================= */
-document.getElementById('formatJsonBtn').addEventListener('click', () => {
-    const textarea = document.getElementById('body');
-    if (!textarea.value.trim()) return;
-    try {
-        textarea.value = JSON.stringify(JSON.parse(textarea.value), null, 2);
-    } catch {
-        alert('Body bukan JSON valid.');
-    }
-});
+    /* ================= CLEAR FORM ================= */
+    document.getElementById('clearFormBtn').addEventListener('click', () => {
+        document.getElementById('method').value = 'GET';
+        document.getElementById('url').value = '';
+        document.getElementById('body').value = '';
+        document.getElementById('contentType').value = '';
+        document.getElementById('authType').value = '';
+        document.getElementById('authToken').value = '';
+        document.getElementById('authToken').disabled = true;
+    });
 
-/* ================= CLEAR FORM ================= */
-document.getElementById('clearFormBtn').addEventListener('click', () => {
-    document.getElementById('method').value = 'GET';
-    document.getElementById('url').value = '';
-    document.getElementById('body').value = '';
-    document.getElementById('contentType').value = '';
-    document.getElementById('authType').value = '';
-    document.getElementById('authToken').value = '';
-    document.getElementById('authToken').disabled = true;
-});
+    /* ================= SEND REQUEST ================= */
+    document.getElementById('requestForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
 
-/* ================= SEND REQUEST ================= */
-document.getElementById('requestForm').addEventListener('submit', async (e) => {
-    e.preventDefault();
+        const method = document.getElementById('method').value;
+        const url = document.getElementById('url').value.trim();
+        const headers_data = buildHeadersData();
+        const body = document.getElementById('body').value;
 
-    const method = document.getElementById('method').value;
-    const url = document.getElementById('url').value.trim();
-    const headers_data = buildHeadersData();
-    const body = document.getElementById('body').value;
+        if (!url) return alert('URL tidak boleh kosong.');
 
-    if (!url) return alert('URL tidak boleh kosong.');
+        document.getElementById('infoText').textContent = 'Sending...';
+        document.getElementById('statusCode').textContent = '-';
 
-    document.getElementById('infoText').textContent = 'Sending...';
-    document.getElementById('statusCode').textContent = '-';
+        try {
+            const res = await fetch('/api/send', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({
+                    method,
+                    url,
+                    headers_data,
+                    body
+                })
+            });
 
-    try {
-        const res = await fetch('/api/send', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json'
-            },
-            body: JSON.stringify({ method, url, headers_data, body })
-        });
+            const data = await res.json();
 
-        const data = await res.json();
+            document.getElementById('statusCode').textContent = data.status ?? '-';
+            document.getElementById('infoText').textContent =
+                data.status === 0 ? 'Request error' : 'Request completed';
 
-        document.getElementById('statusCode').textContent = data.status ?? '-';
-        document.getElementById('infoText').textContent =
-            data.status === 0 ? 'Request error' : 'Request completed';
+            let text = data.body ?? '';
+            try {
+                text = JSON.stringify(JSON.parse(text), null, 2);
+            } catch {}
+            document.getElementById('responseBody').textContent = text || 'No response body.';
 
-        let text = data.body ?? '';
-        try { text = JSON.stringify(JSON.parse(text), null, 2); } catch {}
-        document.getElementById('responseBody').textContent = text || 'No response body.';
+            loadHistory();
+        } catch (err) {
+            document.getElementById('statusCode').textContent = 'ERR';
+            document.getElementById('infoText').textContent = 'Failed';
+            document.getElementById('responseBody').textContent = err.message;
+        }
+    });
 
-        loadHistory();
-    } catch (err) {
-        document.getElementById('statusCode').textContent = 'ERR';
-        document.getElementById('infoText').textContent = 'Failed';
-        document.getElementById('responseBody').textContent = err.message;
-    }
-});
-
-/* ================= HISTORY (LAMA, TETAP) ================= */
-async function loadHistory() {
+    /* ================= HISTORY (LAMA, TETAP) ================= */
+    async function loadHistory() {
         try {
             const res = await fetch('/api/history');
             const list = await res.json();
@@ -248,7 +255,11 @@ async function loadHistory() {
             ${item.url_short}
         </span>
     `;
-                mainBtn.onclick = () => loadHistoryItem(item.id);
+                mainBtn.onclick = () => {
+                    document.getElementById('infoText').textContent = 'Loading history...';
+                    document.getElementById('responseBody').textContent = 'Loading...';
+                    loadHistoryItem(item.id);
+                };
 
                 const deleteBtn = document.createElement('button');
                 deleteBtn.type = 'button';
@@ -277,21 +288,41 @@ async function loadHistory() {
             const res = await fetch(`/api/history/${id}`);
             const item = await res.json();
 
+            // ==== FORM ====
             document.getElementById('method').value = item.method;
             document.getElementById('url').value = item.url;
-            document.getElementById('headers_data').value = (item.headers && typeof item.headers === 'object') ?
-                Object.entries(item.headers).map(([k, v]) => `${k}: ${v}`).join('\n') :
-                '';
             document.getElementById('body').value = item.body ?? '';
 
-            document.getElementById('statusCode').textContent = item.response_status ?? '-';
+            // ==== HEADERS ====
+            document.getElementById('contentType').value =
+                item.headers?.['Content-Type'] ?? '';
+
+            if (item.headers?.['Authorization']) {
+                document.getElementById('authType').value = 'bearer';
+                document.getElementById('authToken').disabled = false;
+                document.getElementById('authToken').value =
+                    item.headers['Authorization'].replace('Bearer ', '');
+            } else {
+                document.getElementById('authType').value = '';
+                document.getElementById('authToken').value = '';
+                document.getElementById('authToken').disabled = true;
+            }
+
+            // ==== RESPONSE ====
+            document.getElementById('statusCode').textContent =
+                item.response_status ?? '-';
+
             let text = item.response_body ?? '';
             try {
-                const parsed = JSON.parse(text);
-                text = JSON.stringify(parsed, null, 2);
-            } catch (e) {}
-            document.getElementById('responseBody').textContent = text || 'No response body.';
-            document.getElementById('infoText').textContent = 'Loaded from history';
+                text = JSON.stringify(JSON.parse(text), null, 2);
+            } catch {}
+
+            document.getElementById('responseBody').textContent =
+                text || 'No response body.';
+
+            document.getElementById('infoText').textContent =
+                'Loaded from history';
+
         } catch (e) {
             console.error(e);
         }
@@ -337,11 +368,11 @@ async function loadHistory() {
 </script>
 
 <style>
-.styled-input {
-    border: 1.5px solid #bbb;
-    border-radius: 8px;
-    padding: 10px 12px;
-}
+    .styled-input {
+        border: 1.5px solid #bbb;
+        border-radius: 8px;
+        padding: 10px 12px;
+    }
 </style>
 
 @endsection

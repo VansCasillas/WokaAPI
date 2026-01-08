@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 
 class ProfileController extends Controller
 {
@@ -53,9 +55,40 @@ class ProfileController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(Request $request)
     {
-        //
+        $user = Auth::user();
+
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:users,email,' . $user->id,
+        ]);
+
+        $path = $user->foto_profil; // simpan path lama dulu
+
+        if ($request->hasFile('foto_profil')) {
+            // hapus foto lama
+            if ($path && Storage::disk('public')->exists($path)) {
+                Storage::disk('public')->delete($path);
+            }
+
+            // upload baru
+            $path = $request->file('foto_profil')->store('foto_profil', 'public');
+        }
+
+        if ($request->filled('password')) {
+            $user->password = Hash::make($request->password);
+        }
+
+        // update nama di tabel users
+        $user->update([
+            'name' => $request->name,
+            'email' => $request->email,
+            'password' => $user->password,
+            'foto_profil' => $path,
+        ]);
+
+        return back()->with('success', 'Profil berhasil diperbarui!');
     }
 
     /**
