@@ -36,7 +36,8 @@
                             <div class="card-body p-3">
                                 <div class="profile-pic-wrapper">
                                     <img id="previewImage"
-                                        src="{{ $user->foto_profil ? asset('storage/' . $user->foto_profil) : asset('assets/img/kal-visuals-square.jpg') }}"
+                                        src="{{ $user->foto_profil ? asset('storage/' . $user->foto_profil) 
+                                        : asset('assets/img/kal-visuals-square.jpg') }}"
                                         alt="Foto Profil"
                                         class="profile-pic">
                                 </div>
